@@ -1,0 +1,29 @@
+RELATED_TOPICS_PROMPT
+
+Based on the following article, suggest related topics for further learning.
+
+ARTICLE TITLE: {title}
+
+ARTICLE CONTENT:
+{content}
+
+KEY ENTITIES:
+{entities}
+
+TASK:
+Generate 5-8 related topics that:
+- Are directly connected to the article's subject matter
+- Would be valuable for deeper understanding
+- Represent natural extensions or related concepts
+- Are broad enough to be searchable topics
+
+RULES:
+- Focus on concepts, not specific people or events
+- Each topic should be 1-5 words
+- Prioritize topics that appeared in the article or are closely related
+- Avoid overly generic topics (e.g., "History", "Science")
+
+OUTPUT FORMAT (strict JSON):
+{{
+  "related_topics": ["Topic 1", "Topic 2", ...]
+}}

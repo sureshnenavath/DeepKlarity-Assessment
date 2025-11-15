@@ -1,0 +1,21 @@
+SUMMARY_GENERATION_PROMPT
+
+Create a concise summary of the following article.
+
+ARTICLE TITLE: {title}
+
+ARTICLE CONTENT:
+{content}
+
+TASK:
+Write a clear, informative summary that:
+- Captures the main topic and key points
+- Is 2-4 sentences long
+- Focuses on the most important information
+- Is written in third person
+- Avoids personal opinions or external knowledge
+
+OUTPUT FORMAT (strict JSON):
+{{
+  "summary": "string"
+}}

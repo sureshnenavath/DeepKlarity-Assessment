@@ -1,0 +1,28 @@
+ENTITY_EXTRACTION_PROMPT
+
+Analyze the following article and extract key entities mentioned.
+
+ARTICLE TITLE: {title}
+
+ARTICLE CONTENT:
+{content}
+
+TASK:
+Extract and categorize the most important entities into three categories:
+1. PEOPLE: Names of individuals, historical figures, authors, scientists, etc.
+2. ORGANIZATIONS: Companies, institutions, universities, government bodies, etc.
+3. LOCATIONS: Countries, cities, regions, buildings, landmarks, etc.
+
+RULES:
+- Only extract entities explicitly mentioned in the article
+- Include the most frequently mentioned or contextually important entities
+- Limit to 10 entities per category
+- Use proper capitalization
+- Avoid generic terms (e.g., "the company", "the country")
+
+OUTPUT FORMAT (strict JSON):
+{{
+  "people": ["Name 1", "Name 2", ...],
+  "organizations": ["Org 1", "Org 2", ...],
+  "locations": ["Location 1", "Location 2", ...]
+}}
