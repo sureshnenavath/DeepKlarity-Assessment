@@ -1,11 +1,11 @@
 # DeepKlarity AI Quiz Generator
 
-An AI-powered quiz generator that creates educational quizzes from web articles using Google Gemini API.
+An AI-powered quiz generator that creates educational quizzes from web articles using OpenAI GPT-4o mini.
 
 ## 🚀 Features
 
 - **Automatic Quiz Generation**: Generate multiple-choice quizzes from any Wikipedia article or web page
-- **AI-Powered Content Analysis**: Uses Google Gemini Pro to create meaningful questions
+- **AI-Powered Content Analysis**: Uses OpenAI GPT-4o mini to create meaningful questions
 - **Entity Extraction**: Automatically identifies key people, organizations, and locations
 - **Smart Difficulty Levels**: Questions categorized as Easy, Medium, or Hard
 - **Quiz History**: Browse and search previously generated quizzes
@@ -17,7 +17,7 @@ An AI-powered quiz generator that creates educational quizzes from web articles 
 ### Backend
 - **FastAPI** (Python 3.11+)
 - **SQLAlchemy** with SQLite database
-- **Google Gemini Pro API** (via LangChain)
+- **OpenAI GPT-4o mini API** (via LangChain)
 - **BeautifulSoup4** for web scraping
 
 ### Frontend
@@ -29,11 +29,18 @@ An AI-powered quiz generator that creates educational quizzes from web articles 
 
 - Python 3.11 or higher
 - Node.js 18 or higher
-- Google Gemini API Key ([Get it here](https://ai.google.dev/))
+- OpenAI API Key ([Get it here](https://platform.openai.com/account/api-keys))
 
 ## 🔧 Installation & Setup
 
-### Backend Setup
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/sureshnennavath/DeepKwality-Assessment.git
+cd DeepKwality-Assessment
+```
+
+### 2. Backend Setup
 
 1. **Navigate to backend directory**
    ```bash
@@ -61,22 +68,31 @@ An AI-powered quiz generator that creates educational quizzes from web articles 
    ```
 
 5. **Configure environment variables**
-   - Copy `.env.example` to `.env`
-   - Add your Google Gemini API key:
-     ```
-     GEMINI_API_KEY=your_api_key_here
+   - Copy `.env.example` to `.env` (if it exists) or create a new `.env` file
+   - Add your OpenAI API key:
+     ```env
+     # Database Configuration
+     DATABASE_URL=sqlite:///./deepklarity_quiz.db
+
+     # OpenAI API
+     OPENAI_API_KEY=your_openai_api_key_here
+
+     # Server Configuration
+     HOST=0.0.0.0
+     PORT=8000
+     DEBUG=True
      ```
 
 6. **Start the backend server**
    ```bash
-   python -m uvicorn app.main:app --reload --port 8000
+   python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
    ```
 
    Server will run at: `http://localhost:8000`
 
-### Frontend Setup
+### 3. Frontend Setup
 
-1. **Navigate to frontend directory**
+1. **Navigate to frontend directory** (open a new terminal)
    ```bash
    cd frontend
    ```
@@ -148,7 +164,7 @@ The application uses carefully crafted prompts for:
 3. **Summary Generation**: Creates concise article summaries
 4. **Related Topics**: Suggests relevant topics for further learning
 
-All prompts are located in `backend/prompts/` directory.
+All prompts are located in `backend/app/services/` directory.
 
 ## 📁 Project Structure
 
@@ -158,14 +174,14 @@ DeepKwality-Assessment/
 │   ├── app/
 │   │   ├── models/          # SQLAlchemy models
 │   │   ├── schemas/         # Pydantic schemas
-│   │   ├── services/        # Business logic
+│   │   ├── services/        # Business logic (LLM, scraper)
 │   │   ├── routes/          # API endpoints
 │   │   ├── config.py        # Configuration
 │   │   ├── database.py      # Database setup
 │   │   └── main.py          # FastAPI app
-│   ├── prompts/             # LLM prompt templates
 │   ├── requirements.txt
-│   └── .env
+│   ├── .env                 # Environment variables
+│   └── deepklarity_quiz.db  # SQLite database (created automatically)
 ├── frontend/
 │   ├── src/
 │   │   ├── components/      # React components
@@ -173,8 +189,10 @@ DeepKwality-Assessment/
 │   │   ├── App.jsx          # Main app component
 │   │   └── main.jsx         # Entry point
 │   ├── package.json
-│   └── tailwind.config.js
-└── sample_data/             # Sample quiz outputs
+│   ├── tailwind.config.js
+│   └── vite.config.js
+├── sample_data/             # Sample quiz outputs
+└── README.md
 ```
 
 ## 🧪 Testing
@@ -187,6 +205,8 @@ Here are some recommended URLs for testing:
 - https://en.wikipedia.org/wiki/Artificial_intelligence
 - https://en.wikipedia.org/wiki/Machine_learning
 - https://en.wikipedia.org/wiki/Climate_change
+- https://en.wikipedia.org/wiki/Samsung
+- https://en.wikipedia.org/wiki/Apple
 
 ### Minimum Requirements
 
@@ -205,7 +225,7 @@ Here are some recommended URLs for testing:
 
 - Maximum article length: ~4000 tokens (truncated if longer)
 - Supported URL patterns: HTTP/HTTPS only
-- Rate limits depend on Google Gemini API tier
+- Rate limits depend on OpenAI API tier
 - Best performance with English-language content
 
 ## 🤝 Contributing
@@ -228,4 +248,4 @@ Created for DeepKlarity Assessment
 
 ---
 
-**Built with FastAPI, React, and Google Gemini AI** 🚀
+**Built with FastAPI, React, and OpenAI GPT-4o mini** 🚀
