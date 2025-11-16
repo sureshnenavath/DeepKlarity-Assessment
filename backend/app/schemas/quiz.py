@@ -2,7 +2,7 @@
 Pydantic schemas for request/response validation.
 """
 
-from pydantic import BaseModel, HttpUrl, Field, field_validator
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional
 from datetime import datetime
 from enum import Enum
@@ -40,8 +40,67 @@ class QuizGenerateRequest(BaseModel):
 
 # ========== Response Schemas ==========
 
+class QuestionJSON(BaseModel):
+    """JSON response schema for a single question."""
+    question: str
+    options: List[str]
+    answer: str
+    difficulty: str
+    explanation: Optional[str] = None
+
+
+class KeyEntitiesJSON(BaseModel):
+    """JSON schema grouping key entities by type."""
+    people: List[str] = []
+    organizations: List[str] = []
+    locations: List[str] = []
+
+
+class QuizResponse(BaseModel):
+    """Full JSON response for a generated quiz."""
+    id: int
+    url: str
+    title: Optional[str] = None
+    summary: Optional[str] = None
+    key_entities: KeyEntitiesJSON = Field(default_factory=KeyEntitiesJSON)
+    sections: List[str] = []
+    quiz: List[QuestionJSON] = []
+    related_topics: List[str] = []
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class QuizListItem(BaseModel):
+    """Summary metadata for a quiz in the history view."""
+    id: int
+    url: str
+    title: Optional[str] = None
+    summary: Optional[str] = None
+    created_at: datetime
+    question_count: int
+
+    class Config:
+        from_attributes = True
+
+
+class QuizHistoryResponse(BaseModel):
+    """Response schema for paginated quiz history."""
+    quizzes: List[QuizListItem]
+    total: int
+    page: int
+    limit: int
+    total_pages: int
+
+    class Config:
+        from_attributes = True
+
+
+# ========== Legacy Response Schemas (for backward compatibility) ==========
+
 class QuestionResponse(BaseModel):
-    """Response schema for a single question."""
+    """Legacy response schema for a single question."""
     id: int
     question_text: str
     option_a: str
@@ -52,33 +111,33 @@ class QuestionResponse(BaseModel):
     difficulty: DifficultyLevel
     explanation: Optional[str] = None
     section_reference: Optional[str] = None
-    
+
     class Config:
         from_attributes = True
 
 
 class KeyEntityResponse(BaseModel):
-    """Response schema for a key entity."""
+    """Legacy response schema for a key entity."""
     id: int
     entity_type: EntityType
     entity_name: str
-    
+
     class Config:
         from_attributes = True
 
 
 class RelatedTopicResponse(BaseModel):
-    """Response schema for a related topic."""
+    """Legacy response schema for a related topic."""
     id: int
     topic_name: str
     topic_url: Optional[str] = None
-    
+
     class Config:
         from_attributes = True
 
 
-class QuizResponse(BaseModel):
-    """Full response schema for a quiz."""
+class QuizResponseLegacy(BaseModel):
+    """Legacy full response schema for a quiz."""
     id: int
     url: str
     title: Optional[str] = None
@@ -88,29 +147,32 @@ class QuizResponse(BaseModel):
     questions: List[QuestionResponse] = []
     key_entities: List[KeyEntityResponse] = []
     related_topics: List[RelatedTopicResponse] = []
-    
+
     class Config:
         from_attributes = True
 
 
-class QuizListItem(BaseModel):
-    """Schema for quiz list items (history view)."""
+class QuizListItemLegacy(BaseModel):
+    """Legacy schema for quiz list items."""
     id: int
     url: str
     title: Optional[str] = None
     created_at: datetime
     question_count: int
-    
+
     class Config:
         from_attributes = True
 
 
-class QuizHistoryResponse(BaseModel):
-    """Response schema for quiz history list."""
+class QuizHistoryResponseLegacy(BaseModel):
+    """Legacy response schema for quiz history list."""
     total: int
     page: int
     limit: int
-    quizzes: List[QuizListItem]
+    quizzes: List[QuizListItemLegacy]
+
+    class Config:
+        from_attributes = True
 
 
 # ========== Error Response ==========

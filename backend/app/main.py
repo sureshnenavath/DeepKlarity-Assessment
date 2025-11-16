@@ -29,8 +29,8 @@ app.add_middleware(
 async def startup_event():
     """Initialize database on application startup."""
     init_db()
-    print(f"🚀 {settings.APP_NAME} v{settings.APP_VERSION} started!")
-    print(f"📊 Database: {settings.DATABASE_URL.split('@')[1] if '@' in settings.DATABASE_URL else 'configured'}")
+    print(f"{settings.APP_NAME} v{settings.APP_VERSION} started!")
+    print(f"Database: {settings.DATABASE_URL.split('@')[1] if '@' in settings.DATABASE_URL else 'configured'}")
 
 
 @app.get("/")

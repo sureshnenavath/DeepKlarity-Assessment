@@ -2,6 +2,8 @@
 FastAPI routes for quiz operations.
 """
 
+import math
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -27,14 +29,14 @@ async def generate_quiz(
 ):
     """
     Generate a new quiz from a URL.
-    
+
     Args:
         request: Quiz generation request with URL and optional num_questions
         db: Database session
-        
+
     Returns:
-        Complete quiz with questions, entities, and related topics
-        
+        Complete quiz with questions, entities, and related topics in JSON format
+
     Raises:
         HTTPException: If generation fails
     """
@@ -45,8 +47,21 @@ async def generate_quiz(
             url=request.url,
             num_questions=request.num_questions
         )
-        
-        return quiz
+
+        # Format response using the JSON structure
+        response_data = {
+            "id": quiz.id,
+            "url": quiz.url,
+            "title": quiz.title,
+            "summary": quiz.quiz_data.get("summary", ""),
+            "key_entities": quiz.quiz_data.get("key_entities", {}),
+            "sections": quiz.quiz_data.get("sections", []),
+            "quiz": quiz.quiz_data.get("quiz", []),
+            "related_topics": quiz.quiz_data.get("related_topics", []),
+            "created_at": quiz.created_at
+        }
+
+        return response_data
         
     except ScraperError as e:
         print(f"ScraperError: {str(e)}")  # Debug logging
@@ -132,15 +147,18 @@ async def get_quiz_history(
                     id=quiz.id,
                     url=quiz.url,
                     title=quiz.title,
-                    created_at=quiz.created_at,
-                    question_count=len(quiz.questions)
+                    summary=quiz.quiz_data.get("summary", ""),
+                    question_count=len(quiz.quiz_data.get("quiz", [])),
+                    created_at=quiz.created_at
                 )
             )
         
+        total_pages = math.ceil(total / limit) if total else 0
         return QuizHistoryResponse(
             total=total,
             page=page,
             limit=limit,
+            total_pages=total_pages,
             quizzes=quiz_items
         )
         
@@ -176,7 +194,7 @@ async def get_quiz_by_id(
         HTTPException: If quiz not found
     """
     quiz = quiz_service.get_quiz_by_id(db, quiz_id)
-    
+
     if not quiz:
         raise HTTPException(
             status_code=404,
@@ -188,8 +206,21 @@ async def get_quiz_by_id(
                 }
             }
         )
-    
-    return quiz
+
+    # Format response using the JSON structure
+    response_data = {
+        "id": quiz.id,
+        "url": quiz.url,
+        "title": quiz.title,
+        "summary": quiz.quiz_data.get("summary", ""),
+        "key_entities": quiz.quiz_data.get("key_entities", {}),
+        "sections": quiz.quiz_data.get("sections", []),
+        "quiz": quiz.quiz_data.get("quiz", []),
+        "related_topics": quiz.quiz_data.get("related_topics", []),
+        "created_at": quiz.created_at
+    }
+
+    return response_data
 
 
 @router.delete("/quiz/{quiz_id}")

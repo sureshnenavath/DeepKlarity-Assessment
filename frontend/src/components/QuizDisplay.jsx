@@ -36,13 +36,14 @@ const QuizDisplay = ({ quiz }) => {
       </div>
 
       {/* Key Entities */}
-      {quiz.key_entities && quiz.key_entities.length > 0 && (
+      {quiz.key_entities && (
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-bold text-gray-800 mb-4">Key Entities</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {['people', 'organizations', 'locations'].map((type) => {
-              const entities = quiz.key_entities.filter((e) => e.entity_type === type);
-              return entities.length > 0 ? (
+              const entities = quiz.key_entities?.[type] || [];
+              if (!entities.length) return null;
+              return (
                 <div key={type}>
                   <h3 className="font-semibold text-gray-700 mb-2 capitalize">{type}</h3>
                   <div className="flex flex-wrap gap-2">
@@ -51,12 +52,12 @@ const QuizDisplay = ({ quiz }) => {
                         key={idx}
                         className="inline-block bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full"
                       >
-                        {entity.entity_name}
+                        {entity}
                       </span>
                     ))}
                   </div>
                 </div>
-              ) : null;
+              );
             })}
           </div>
         </div>
@@ -81,49 +82,53 @@ const QuizDisplay = ({ quiz }) => {
 
       {/* Questions */}
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-gray-800">Questions ({quiz.questions?.length || 0})</h2>
-        {quiz.questions && quiz.questions.map((question, idx) => (
-          <div key={question.id} className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-start justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 flex-1">
-                {idx + 1}. {question.question_text}
-              </h3>
-              <span className={`ml-4 px-3 py-1 rounded-full text-xs font-semibold ${getDifficultyColor(question.difficulty)}`}>
-                {question.difficulty}
-              </span>
-            </div>
-
-            <div className="space-y-2 mb-4">
-              {['option_a', 'option_b', 'option_c', 'option_d'].map((optKey, optIdx) => {
-                const letter = String.fromCharCode(65 + optIdx);
-                const isCorrect = question.correct_answer === letter;
-                return (
-                  <div
-                    key={optKey}
-                    className={`p-3 rounded-lg border-2 ${
-                      isCorrect
-                        ? 'border-green-500 bg-green-50'
-                        : 'border-gray-200 bg-gray-50'
-                    }`}
-                  >
-                    <span className="font-semibold">{letter}.</span> {question[optKey]}
-                    {isCorrect && (
-                      <span className="ml-2 text-green-600 font-semibold">✓ Correct</span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {question.explanation && (
-              <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-                <p className="text-sm text-gray-700">
-                  <strong>Explanation:</strong> {question.explanation}
-                </p>
+        <h2 className="text-2xl font-bold text-gray-800">Questions ({quiz.quiz?.length || 0})</h2>
+        {quiz.quiz && quiz.quiz.map((question, idx) => {
+          const optionList = question.options || [];
+          const correctAnswerText = question.answer;
+          return (
+            <div key={`${idx}-${question.question}`} className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-start justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 flex-1">
+                  {idx + 1}. {question.question}
+                </h3>
+                <span className={`ml-4 px-3 py-1 rounded-full text-xs font-semibold ${getDifficultyColor(question.difficulty)}`}>
+                  {question.difficulty}
+                </span>
               </div>
-            )}
-          </div>
-        ))}
+
+              <div className="space-y-2 mb-4">
+                {optionList.map((option, optIdx) => {
+                  const letter = String.fromCharCode(65 + optIdx);
+                  const isCorrect = option === correctAnswerText;
+                  return (
+                    <div
+                      key={`${optIdx}-${option}`}
+                      className={`p-3 rounded-lg border-2 ${
+                        isCorrect
+                          ? 'border-green-500 bg-green-50'
+                          : 'border-gray-200 bg-gray-50'
+                      }`}
+                    >
+                      <span className="font-semibold">{letter}.</span> {option}
+                      {isCorrect && (
+                        <span className="ml-2 text-green-600 font-semibold">✓ Correct</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {question.explanation && (
+                <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                  <p className="text-sm text-gray-700">
+                    <strong>Explanation:</strong> {question.explanation}
+                  </p>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Related Topics */}
@@ -136,7 +141,7 @@ const QuizDisplay = ({ quiz }) => {
                 key={idx}
                 className="inline-block bg-purple-100 text-purple-800 text-sm px-4 py-2 rounded-lg cursor-pointer hover:bg-purple-200 transition"
               >
-                {topic.topic_name}
+                {typeof topic === 'string' ? topic : topic.topic_name}
               </span>
             ))}
           </div>

@@ -1,14 +1,15 @@
 """
 Quiz generation service that orchestrates scraping, LLM, and database operations.
+Stores complete quiz data as JSON instead of relational tables.
 """
 
 from sqlalchemy.orm import Session
 from typing import Dict, List, Optional
-from ..models.quiz import Quiz, Question, KeyEntity, RelatedTopic, DifficultyLevel, EntityType
-from ..schemas.quiz import QuizResponse
+
+from ..models.quiz import Quiz
 from .scraper import scraper, ScraperError
 from .llm_service import llm_service
-from ..utils.helpers import extract_sections_list, format_options_for_storage, sanitize_url
+from ..utils.helpers import sanitize_url, extract_sections_list
 
 
 class QuizGenerationError(Exception):
@@ -17,214 +18,140 @@ class QuizGenerationError(Exception):
 
 
 class QuizGeneratorService:
-    """Service for generating quizzes from URLs."""
-    
+    """Service that builds quizzes as JSON blobs from article URLs."""
+
     def generate_quiz(self, db: Session, url: str, num_questions: int = 8) -> Quiz:
-        """
-        Generate a complete quiz from a URL.
-        
-        Args:
-            db: Database session
-            url: Article URL
-            num_questions: Number of questions to generate
-            
-        Returns:
-            Created Quiz object
-            
-        Raises:
-            QuizGenerationError: If generation fails
-        """
+        """Generate a quiz for the URL and persist it."""
         try:
-            # Sanitize URL
-            url = sanitize_url(url)
-            
-            # Check for duplicate
-            existing_quiz = db.query(Quiz).filter(Quiz.url == url).first()
+            normalized_url = sanitize_url(url)
+
+            existing_quiz = db.query(Quiz).filter(Quiz.url == normalized_url).first()
             if existing_quiz:
                 return existing_quiz
-            
-            # Step 1: Scrape content
-            try:
-                scraped_data = scraper.scrape_url(url)
-            except ScraperError as e:
-                raise QuizGenerationError(f"Scraping failed: {str(e)}")
-            
-            title = scraped_data['title']
-            full_text = scraped_data['full_text']
-            sections = scraped_data['sections']
-            
-            # Step 2: Generate summary
-            summary = llm_service.generate_summary(title, full_text)
-            
-            # Step 3: Extract entities
-            entities = llm_service.extract_entities(title, full_text)
-            
-            # Step 4: Generate quiz questions
-            try:
-                questions_data = llm_service.generate_quiz(title, full_text, num_questions)
-            except Exception as e:
-                raise QuizGenerationError(f"Quiz generation failed: {str(e)}")
-            
-            # Step 5: Generate related topics
-            related_topics_list = llm_service.generate_related_topics(title, full_text, entities)
-            
-            # Step 6: Save to database
-            quiz = self._save_to_database(
-                db=db,
-                url=url,
-                title=title,
-                summary=summary,
-                sections=sections,
-                questions_data=questions_data,
-                entities=entities,
-                related_topics=related_topics_list
+
+            scraped_data = self._scrape_content(normalized_url)
+            questions = self._generate_questions(scraped_data, num_questions)
+            entities = self._extract_entities(scraped_data)
+            summary = self._generate_summary(scraped_data)
+            related_topics = self._generate_related_topics(scraped_data, entities)
+            quiz_json = self._build_quiz_json(
+                normalized_url,
+                scraped_data,
+                questions,
+                entities,
+                summary,
+                related_topics
             )
-            
-            return quiz
-            
-        except QuizGenerationError:
-            raise
-        except Exception as e:
-            raise QuizGenerationError(f"Unexpected error: {str(e)}")
-    
-    def _save_to_database(
-        self,
-        db: Session,
-        url: str,
-        title: str,
-        summary: str,
-        sections: List[Dict],
-        questions_data: List[Dict],
-        entities: Dict[str, List[str]],
-        related_topics: List[str]
-    ) -> Quiz:
-        """
-        Save quiz data to database.
-        
-        Args:
-            db: Database session
-            url: Article URL
-            title: Article title
-            summary: Generated summary
-            sections: List of article sections
-            questions_data: List of question dictionaries
-            entities: Extracted entities dictionary
-            related_topics: List of related topic strings
-            
-        Returns:
-            Created Quiz object
-        """
-        try:
-            # Create quiz object
+
             quiz = Quiz(
-                url=url,
-                title=title,
-                summary=summary,
-                sections=extract_sections_list(sections)
+                url=normalized_url,
+                title=scraped_data.get('title', ''),
+                quiz_data=quiz_json
             )
-            
             db.add(quiz)
-            db.flush()  # Get quiz.id without committing
-            
-            # Add questions
-            for q_data in questions_data:
-                options = format_options_for_storage(q_data['options'])
-                
-                question = Question(
-                    quiz_id=quiz.id,
-                    question_text=q_data['question'],
-                    option_a=options['option_a'],
-                    option_b=options['option_b'],
-                    option_c=options['option_c'],
-                    option_d=options['option_d'],
-                    correct_answer=q_data['answer'],
-                    difficulty=DifficultyLevel(q_data['difficulty']),
-                    explanation=q_data.get('explanation', ''),
-                    section_reference=q_data.get('section_reference')
-                )
-                db.add(question)
-            
-            # Add entities
-            for entity_type, entity_names in entities.items():
-                for name in entity_names:
-                    if name:  # Skip empty names
-                        entity = KeyEntity(
-                            quiz_id=quiz.id,
-                            entity_type=EntityType(entity_type),
-                            entity_name=name
-                        )
-                        db.add(entity)
-            
-            # Add related topics
-            for topic_name in related_topics:
-                if topic_name:  # Skip empty topics
-                    topic = RelatedTopic(
-                        quiz_id=quiz.id,
-                        topic_name=topic_name
-                    )
-                    db.add(topic)
-            
-            # Commit transaction
             db.commit()
             db.refresh(quiz)
-            
+
             return quiz
-            
-        except Exception as e:
+
+        except QuizGenerationError:
             db.rollback()
-            raise QuizGenerationError(f"Database error: {str(e)}")
-    
+            raise
+        except Exception as exc:
+            db.rollback()
+            raise QuizGenerationError(f"Quiz generation failed: {str(exc)}")
+
+    def _scrape_content(self, url: str) -> Dict:
+        try:
+            return scraper.scrape_url(url)
+        except ScraperError as exc:
+            raise QuizGenerationError(f"Scraping failed: {str(exc)}")
+        except Exception as exc:
+            raise QuizGenerationError(f"Unexpected scraping error: {str(exc)}")
+
+    def _generate_questions(self, scraped_data: Dict, num_questions: int) -> List[Dict]:
+        try:
+            return llm_service.generate_quiz(
+                title=scraped_data.get('title', ''),
+                content=scraped_data.get('full_text', ''),
+                num_questions=num_questions
+            )
+        except Exception as exc:
+            raise QuizGenerationError(f"LLM quiz generation failed: {str(exc)}")
+
+    def _extract_entities(self, scraped_data: Dict) -> Dict[str, List[str]]:
+        try:
+            return llm_service.extract_entities(
+                title=scraped_data.get('title', ''),
+                content=scraped_data.get('full_text', '')
+            )
+        except Exception:
+            return {
+                'people': [],
+                'organizations': [],
+                'locations': []
+            }
+
+    def _generate_summary(self, scraped_data: Dict) -> str:
+        try:
+            return llm_service.generate_summary(
+                title=scraped_data.get('title', ''),
+                content=scraped_data.get('full_text', '')
+            )
+        except Exception:
+            return ""
+
+    def _generate_related_topics(self, scraped_data: Dict, entities: Dict[str, List[str]]) -> List[str]:
+        try:
+            return llm_service.generate_related_topics(
+                title=scraped_data.get('title', ''),
+                content=scraped_data.get('full_text', ''),
+                entities=entities
+            )
+        except Exception:
+            return []
+
+    def _build_quiz_json(
+        self,
+        url: str,
+        scraped_data: Dict,
+        questions: List[Dict],
+        entities: Dict[str, List[str]],
+        summary: str,
+        related_topics: List[str]
+    ) -> Dict:
+        return {
+            "url": url,
+            "title": scraped_data.get('title', ''),
+            "summary": summary,
+            "key_entities": entities,
+            "sections": extract_sections_list(scraped_data.get('sections', [])),
+            "quiz": questions,
+            "related_topics": related_topics
+        }
+
     def get_quiz_by_id(self, db: Session, quiz_id: int) -> Optional[Quiz]:
-        """
-        Get quiz by ID with all relationships loaded.
-        
-        Args:
-            db: Database session
-            quiz_id: Quiz ID
-            
-        Returns:
-            Quiz object or None
-        """
         return db.query(Quiz).filter(Quiz.id == quiz_id).first()
-    
+
     def get_all_quizzes(
-        self, 
-        db: Session, 
-        page: int = 1, 
+        self,
+        db: Session,
+        page: int = 1,
         limit: int = 20,
         search: Optional[str] = None
     ) -> tuple[List[Quiz], int]:
-        """
-        Get paginated list of quizzes.
-        
-        Args:
-            db: Database session
-            page: Page number (1-indexed)
-            limit: Items per page
-            search: Optional search query
-            
-        Returns:
-            Tuple of (quiz list, total count)
-        """
         query = db.query(Quiz)
-        
-        # Apply search filter
         if search:
             search_term = f"%{search}%"
             query = query.filter(
-                (Quiz.title.ilike(search_term)) | 
-                (Quiz.url.ilike(search_term))
+                (Quiz.title.ilike(search_term)) | (Quiz.url.ilike(search_term))
             )
-        
-        # Get total count
+
         total = query.count()
-        
-        # Apply pagination
         offset = (page - 1) * limit
         quizzes = query.order_by(Quiz.created_at.desc()).offset(offset).limit(limit).all()
-        
+
         return quizzes, total
 
 
-# Create singleton instance
 quiz_service = QuizGeneratorService()
