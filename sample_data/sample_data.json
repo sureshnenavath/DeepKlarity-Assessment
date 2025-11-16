@@ -1,0 +1,131 @@
+{
+  "url": "https://en.wikipedia.org/wiki/Python_(programming_language)",
+  "title": "Python (programming language)",
+  "summary": "Python is a high-level, general-purpose programming language known for its emphasis on code readability and support for multiple programming paradigms, including procedural, object-oriented, and functional programming. Developed by Guido van Rossum in the late 1980s, Python has evolved significantly, with Python 3.0 released in 2008 marking a major revision that is not fully backward-compatible. The language is widely used in various fields, particularly in machine learning, and has consistently ranked among the most popular programming languages globally. Python's design philosophy promotes simplicity and extensibility, making it a favored choice for both beginners and experienced developers.",
+  "key_entities": {
+    "people": [
+      "Guido van Rossum",
+      "Tim Peters",
+      "Alex Martelli"
+    ],
+    "organizations": [
+      "Python Software Foundation",
+      "Centrum Wiskunde & Informatica",
+      "TIOBE Programming Community"
+    ],
+    "locations": [
+      "Netherlands"
+    ]
+  },
+  "sections": [
+    "Introduction"
+  ],
+  "quiz": [
+    {
+      "question": "Who began working on Python in the late 1980s?",
+      "options": [
+        "Guido van Rossum",
+        "Tim Peters",
+        "Alex Martelli",
+        "BDFL-emeritus"
+      ],
+      "answer": "A",
+      "difficulty": "easy",
+      "explanation": "The article states that Guido van Rossum began working on Python in the late 1980s as a successor to the ABC programming language."
+    },
+    {
+      "question": "What major revision of Python was released in 2008?",
+      "options": [
+        "Python 2.0",
+        "Python 2.7",
+        "Python 3.0",
+        "Python 3.5"
+      ],
+      "answer": "C",
+      "difficulty": "easy",
+      "explanation": "According to the article, Python 3.0 was released in 2008 and was a major revision not completely backward-compatible with earlier versions."
+    },
+    {
+      "question": "What is the primary design philosophy of Python?",
+      "options": [
+        "Performance over readability",
+        "Code readability with significant indentation",
+        "Strictly typed variables",
+        "Complex syntax"
+      ],
+      "answer": "B",
+      "difficulty": "medium",
+      "explanation": "The article emphasizes that Python's design philosophy prioritizes code readability through the use of significant indentation."
+    },
+    {
+      "question": "What feature was added to Python starting with version 3.5?",
+      "options": [
+        "Dynamic typing",
+        "Garbage collection",
+        "Optional static typing",
+        "Duck typing"
+      ],
+      "answer": "C",
+      "difficulty": "medium",
+      "explanation": "The article mentions that beginning with Python 3.5, capabilities and keywords for typing were added, allowing for optional static typing."
+    },
+    {
+      "question": "What does the term 'pythonic' refer to in the Python community?",
+      "options": [
+        "Code that is clever",
+        "Code that is complex",
+        "Code that adheres to Python's philosophy and idioms",
+        "Code that is poorly written"
+      ],
+      "answer": "C",
+      "difficulty": "medium",
+      "explanation": "The article describes 'pythonic' as having a broad range of meanings related to program style, often indicating adherence to Python's minimalist philosophy and emphasis on readability."
+    },
+    {
+      "question": "What is the significance of the Zen of Python (PEP 20)?",
+      "options": [
+        "It is a list of Python libraries",
+        "It summarizes Python's core philosophy",
+        "It defines Python's syntax rules",
+        "It is a guide for Python performance optimization"
+      ],
+      "answer": "B",
+      "difficulty": "hard",
+      "explanation": "The article states that the Zen of Python, written by Tim Peters, summarizes Python's core philosophy through various aphorisms."
+    },
+    {
+      "question": "What does Python's dynamic typing mean?",
+      "options": [
+        "Variables must be declared with a type",
+        "Variable names are generic references without a fixed data type",
+        "All variables are strongly typed",
+        "Variables cannot change type once assigned"
+      ],
+      "answer": "B",
+      "difficulty": "hard",
+      "explanation": "The article explains that in Python, a variable name is a generic reference holder without a fixed data type, which characterizes dynamic typing."
+    },
+    {
+      "question": "What is the purpose of the 'round' function in Python?",
+      "options": [
+        "To convert floats to integers",
+        "To round a float to the nearest integer",
+        "To perform floor division",
+        "To calculate the average of a list"
+      ],
+      "answer": "B",
+      "difficulty": "hard",
+      "explanation": "The article states that Python provides a round function for rounding a float to the nearest integer, using the round to even method."
+    }
+  ],
+  "related_topics": [
+    "Object-Oriented Programming",
+    "Functional Programming",
+    "Dynamic Typing",
+    "Garbage Collection",
+    "Python Libraries",
+    "Machine Learning with Python",
+    "Python 3.x Features",
+    "The Zen of Python"
+  ]
+}

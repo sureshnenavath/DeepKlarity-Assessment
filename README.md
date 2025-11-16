@@ -166,6 +166,101 @@ The application uses carefully crafted prompts for:
 
 All prompts are located in `backend/app/services/` directory.
 
+## 📄 Documentation Deliverables
+
+- `README.md` (this file) documents environment setup, REST endpoints, and recommended testing workflow for quick onboarding.
+- LangChain prompt templates for quiz and related-topic generation are available under `backend/prompts/` and summarized below for reference during prompt tuning or audits.
+
+### Quiz Generation Prompt
+
+```text
+MAIN_QUIZ_GENERATION_PROMPT
+
+You are an expert educational content creator tasked with generating a high-quality quiz based on the provided article content.
+
+ARTICLE TITLE: {title}
+
+ARTICLE CONTENT:
+{content}
+
+INSTRUCTIONS:
+1. Generate exactly {num_questions} questions based ONLY on the information present in the article
+2. Questions must be:
+    - Factually accurate and verifiable from the article
+    - Clear and unambiguous
+    - Diverse in difficulty (mix of easy, medium, hard)
+    - Covering different sections/topics from the article
+    - Testing comprehension, not just memorization
+
+3. For EACH question provide:
+    - Question text (clear and concise)
+    - Four plausible options (A, B, C, D)
+    - Correct answer (letter: A/B/C/D)
+    - Difficulty level (easy/medium/hard)
+    - Brief explanation (1-2 sentences) citing which section of the article supports the answer
+
+4. Difficulty Guidelines:
+    - Easy: Direct facts explicitly stated in the article
+    - Medium: Requires understanding of relationships or concepts
+    - Hard: Requires synthesis of multiple pieces of information
+
+5. CRITICAL RULES:
+    - DO NOT include information not present in the article
+    - DO NOT make assumptions or add external knowledge
+    - Ensure all four options are plausible but only one is correct
+    - Avoid negative questions (e.g., "Which is NOT...")
+    - Vary question types: factual, conceptual, analytical
+
+OUTPUT FORMAT (strict JSON):
+{
+   "quiz": [
+      {
+         "question": "string",
+         "options": ["A text", "B text", "C text", "D text"],
+         "answer": "A" | "B" | "C" | "D",
+         "difficulty": "easy" | "medium" | "hard",
+         "explanation": "string"
+      }
+   ]
+}
+
+Generate {num_questions} questions now.
+```
+
+### Related Topics Prompt
+
+```text
+RELATED_TOPICS_PROMPT
+
+Based on the following article, suggest related topics for further learning.
+
+ARTICLE TITLE: {title}
+
+ARTICLE CONTENT:
+{content}
+
+KEY ENTITIES:
+{entities}
+
+TASK:
+Generate 5-8 related topics that:
+- Are directly connected to the article's subject matter
+- Would be valuable for deeper understanding
+- Represent natural extensions or related concepts
+- Are broad enough to be searchable topics
+
+RULES:
+- Focus on concepts, not specific people or events
+- Each topic should be 1-5 words
+- Prioritize topics that appeared in the article or are closely related
+- Avoid overly generic topics (e.g., "History", "Science")
+
+OUTPUT FORMAT (strict JSON):
+{
+   "related_topics": ["Topic 1", "Topic 2", ...]
+}
+```
+
 ## 📁 Project Structure
 
 ```

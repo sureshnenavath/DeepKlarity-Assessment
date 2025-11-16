@@ -85,7 +85,16 @@ const QuizDisplay = ({ quiz }) => {
         <h2 className="text-2xl font-bold text-gray-800">Questions ({quiz.quiz?.length || 0})</h2>
         {quiz.quiz && quiz.quiz.map((question, idx) => {
           const optionList = question.options || [];
-          const correctAnswerText = question.answer;
+          const normalizedAnswer = (question.answer || '').trim();
+          const letterMatch = /^[A-D]$/i.test(normalizedAnswer)
+            ? normalizedAnswer.toUpperCase()
+            : null;
+          const correctIndexFromLetter = letterMatch
+            ? letterMatch.charCodeAt(0) - 65
+            : -1;
+          const correctIndexFromText = optionList.findIndex(
+            (option) => option.trim() === normalizedAnswer
+          );
           return (
             <div key={`${idx}-${question.question}`} className="bg-white rounded-lg shadow-md p-6">
               <div className="flex items-start justify-between mb-4">
@@ -100,7 +109,9 @@ const QuizDisplay = ({ quiz }) => {
               <div className="space-y-2 mb-4">
                 {optionList.map((option, optIdx) => {
                   const letter = String.fromCharCode(65 + optIdx);
-                  const isCorrect = option === correctAnswerText;
+                  const isCorrect =
+                    optIdx === correctIndexFromLetter ||
+                    optIdx === correctIndexFromText;
                   return (
                     <div
                       key={`${optIdx}-${option}`}
