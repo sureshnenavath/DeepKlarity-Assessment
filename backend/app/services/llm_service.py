@@ -5,7 +5,7 @@ Handles quiz generation, entity extraction, and summary generation.
 
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
-from langchain_core.output_parsers import PydanticOutputParser
+from langchain.output_parsers import PydanticOutputParser
 from langchain_core.output_parsers import JsonOutputParser
 from typing import Dict, List, Optional
 import json
